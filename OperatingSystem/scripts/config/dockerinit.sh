@@ -1,6 +1,6 @@
 #!/bin/bash
 
-$(clear)
+clear
 
 # '{} &> /dev/null' : output of command will be trashed
 
@@ -17,9 +17,6 @@ unset -v imageName
 unset -v containerName
 unset -v containerCount
 
-# For funciton return state code
-unset -v returnState
-
 # Step printer
 step=1
 stepPrint(){
@@ -29,6 +26,8 @@ stepPrint(){
 
 
 # Type checking function
+# For funciton return state code
+unset -v returnState
 typeChecker(){
   case $2 in
     int)
@@ -76,7 +75,6 @@ checkRequiredArguments(){
   if [[ -z "${imageName}" || -z "${containerName}" || -z "${containerCount}" ]]
   then
     argumentException "Some arguments not entered"
-    exit 1
   else
     # Check containerCount variable type as int
     typeChecker $containerCount int
@@ -92,7 +90,7 @@ checkRequiredArguments(){
       argumentException "option -n must be type 'lowercase string'"
     fi
 
-    # Chekc containerName type as string:lowercase
+    # Check containerName type as string:lowercase
     typeChecker $imageName lowerstring
     if [[ $returnState == 1 ]]
     then
@@ -118,7 +116,6 @@ do
       ;;
     *)
       argumentException "Not supported type of argument"
-      exit 0
       ;;
   esac
 done
@@ -161,3 +158,5 @@ do
   } &> /dev/null
   echo "Progressing...(${i}/${containerCount})"
 done
+
+stepPrint "Script End"
