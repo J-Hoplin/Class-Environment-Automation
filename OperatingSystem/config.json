@@ -1,0 +1,11 @@
+{
+    "img" : "hongikos",
+    "env" : {
+        "osclass501" : {
+            "attendee" : 5
+        },
+        "osclass502" : {
+            "attendee" : 5
+        }
+    }
+}

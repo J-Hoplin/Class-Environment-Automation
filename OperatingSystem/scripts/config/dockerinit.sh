@@ -1,5 +1,9 @@
 #!/bin/bash
 
+$(clear)
+
+# '{} &> /dev/null' : output of command will be trashed
+
 # If some command exit with non-zero option, exit script
 set -e
 
@@ -16,9 +20,8 @@ unset -v containerCount
 # For funciton return state code
 unset -v returnState
 
-step=1
-
 # Step printer
+step=1
 stepPrint(){
   printStep $step "$1"
   step=$(expr $step + 1)
@@ -107,10 +110,10 @@ do
     i)
       imageName=${OPTARG}
       ;;
-    n) # osclass(분반명)
+    n) 
       containerName=${OPTARG}
       ;;
-    c) # 수강생 수
+    c) 
       containerCount=${OPTARG}
       ;;
     *)
@@ -125,16 +128,36 @@ stepPrint "Checking arguments conditions(type, constraints)"
 checkRequiredArguments
 
 stepPrint "Build Container"
-docker build -t ${imageName} $(pwd)/image
+
+# Check if image with same name exist
+imageExist=0
+for i in $(docker images | grep os | awk '{print $1}')
+do
+  if [[ "${i}" == "${imageName}" ]];
+  then
+    imageExist=1
+    break
+  fi
+done
+
+# Build Image if not exist
+if [[ ${imageExist} -eq 0 ]]
+then
+  stepPrint "Image not detected. Build Image"
+  {
+    docker build -t ${imageName} $(dirname $(pwd))/Docker
+  } &> /dev/null
+fi
 
 stepPrint "Initiate containers : Total $containerCount need to be initiate"
 
 for i in $(seq $containerCount)
 do
   loopName="${containerName}_${i}"
-  docker run -it -d --privileged --name ${loopName} ${imageName} /sbin/init
-  docker exec ${loopName} bash init/init.sh
-  stepPrint "Delete init directory"
-  docker exec ${loopName} rm -rf init
+  { 
+    docker run -it -d --privileged --name ${loopName} ${imageName} /sbin/init
+    docker exec ${loopName} bash init/init.sh
+    docker exec ${loopName} rm -rf init
+  } &> /dev/null
   echo "Progressing...(${i}/${containerCount})"
 done
