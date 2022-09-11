@@ -1,0 +1,9 @@
+# OS
+.DS_Store
+# IDE
+.idea
+# node.js
+node_modules
+package-lock.json
+# IPython Notebook
+.ipynb_checkpoints
