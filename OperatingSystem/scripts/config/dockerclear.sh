@@ -9,47 +9,21 @@ unset -v containerName
 
 
 # Get exceptions and console printConvention
-source ./print.sh
+source ./console.sh
 source ./exceptions.sh
+source ./typeChecker.sh
 
 # Script Document
 scriptDoc="
   -n | string:lowercase | container base name
 "
 
-# Parsing arguments, 
-unset -v returnState
-typeChecker(){
-  case $2 in
-    int)
-      if [[ $1 =~ ^[0-9]+$ ]];
-      then
-        returnState=0
-      else
-        returnState=1
-      fi
-      ;;
-    lowerstring)
-      if [[ $1 =~ ^([a-z])+([0-9])*$ ]]; 
-      then
-        returnState=0
-      else
-        returnState=1
-      fi
-      ;;
-    esac
-}
-
 checkRequiredArguments(){
   if [[ -z "${containerName}" ]]
   then
     argumentException "Some arguments not entered" "${scriptDoc}"
   else
-    typeChecker $containerName lowerstring
-    if [[ $returnState == 1 ]]
-    then
-      argumentException "option -n must be type 'lowercase string'" "${scriptDoc}"
-    fi
+    typeChecker $containerName lowerstring "n" "${scriptDoc}"
   fi
 }
 

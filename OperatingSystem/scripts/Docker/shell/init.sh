@@ -24,6 +24,7 @@ yum install -y git
 printConsole "Set SSH Port"
 # Add Port 22 to sshd_config file
 echo "Port 22" >> /etc/ssh/sshd_config
+echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
 
 printConsole "Allow SSH port of firewall"
 # Allow ssh port from firewall and reload firewall

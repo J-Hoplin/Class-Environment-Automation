@@ -2,7 +2,7 @@
 
 # Argument help command
 helpCommand(){
-  printConsole "Required options for dockerinit.sh"
+  printConsole "Required options"
   echo "${1}"
 }
 

@@ -8,14 +8,18 @@ clear
 set -e
 
 # Get exceptions and console printConvention functions
-source ./print.sh
+source ./console.sh
 source ./exceptions.sh
+source ./typeChecker.sh
 
 # Unset required field arguments
 
 unset -v imageName
 unset -v containerName
 unset -v containerCount
+
+# Parameter type array after parsing
+unset -v ports
 
 # Script Document
 scriptDoc="
@@ -31,52 +35,6 @@ stepPrint(){
   step=$(expr $step + 1)
 }
 
-
-# Type checking function
-# For funciton return state code
-unset -v returnState
-typeChecker(){
-  case $2 in
-    int)
-      if [[ $1 =~ ^[0-9]+$ ]]; 
-      then
-        returnState=0
-      else
-        returnState=1
-      fi 
-      ;;
-    string)
-      # String type doesn't support unicode emoji or text
-      if [[ $1 =~ ^([A-Za-z])+([0-9])*$ ]];
-      then
-        returnState=0
-      else
-        returnState=1
-      fi
-      ;;
-    lowerstring) 
-      # Lower string base : should be at least 1 string and 0 or more int
-      if [[ $1 =~ ^([a-z])+([0-9])*$ ]]; 
-      then
-        returnState=0
-      else
-        returnState=1
-      fi
-      ;;
-    upperstring)
-      # Upper string base : should be at least 1 string and 0 or more int
-      if [[ $1 =~ ^([A-Z])+([0-9])*$ ]];
-      then
-        returnState=0
-      else
-        returnState=1
-      fi
-      ;;
-    any | *)
-      returnState=0
-  esac
-}
-
 # Check required arguments entered
 checkRequiredArguments(){
   if [[ -z "${imageName}" || -z "${containerName}" || -z "${containerCount}" ]]
@@ -84,32 +42,26 @@ checkRequiredArguments(){
     argumentException "Some arguments not entered" "${scriptDoc}"
   else
     # Check containerCount variable type as int
-    typeChecker $containerCount int
-    if [[ $returnState == 1 ]]
-    then
-      argumentException "option -c must be type 'int'" "${scriptDoc}"
-    fi
+    typeChecker $containerCount int "c"
 
     # Check imageName type as string:lowercase
-    typeChecker $containerName lowerstring
-    if [[ $returnState == 1 ]]
-    then
-      argumentException "option -n must be type 'lowercase string'" "${scriptDoc}"
-    fi
+    typeChecker $containerName lowerstring "n"
 
     # Check containerName type as string:lowercase
-    typeChecker $imageName lowerstring
-    if [[ $returnState == 1 ]]
-    then
-      argumentException "option -i must be type 'lowercase string'" "${scriptDoc}"
-    fi
+    typeChecker $imageName lowerstring "i"
+
+    # Check port type as int
+    for i in  "${ports[@]}"
+    do
+      typeChecker $i int "p"
+    done
   fi
 }
 
 
 stepPrint "Parsing Arguments"
 # Parsing arguments, required in order(POSIX method)
-while getopts "i:n:c:" opt;
+while getopts "i:n:c:p:" opt;
 do
   case $opt in
     i)
@@ -120,6 +72,13 @@ do
       ;;
     c) 
       containerCount=${OPTARG}
+      ;;
+    p)
+      ports=()
+      for i in "${OPTARG}"
+      do
+        ports+=($i)
+      done
       ;;
     *)
       argumentException "Not supported type of argument" "${scriptDoc}"
@@ -148,9 +107,7 @@ done
 if [[ ${imageExist} -eq 0 ]]
 then
   stepPrint "Image not detected. Build Image"
-  {
-    docker build -t ${imageName} $(dirname $(pwd))/Docker
-  } &> /dev/null
+  docker build -t ${imageName} $(dirname $(pwd))/Docker
 fi
 
 stepPrint "Initiate containers : Total $containerCount need to be initiate"
@@ -159,7 +116,7 @@ for i in $(seq $containerCount)
 do
   loopName="${containerName}_${i}"
   { 
-    docker run -it -d --privileged --name ${loopName} ${imageName} /sbin/init
+    docker run -it -d --privileged -p ${ports[$i - 1]}:22 --name ${loopName} ${imageName} /sbin/init
     docker exec ${loopName} bash init/init.sh
     docker exec ${loopName} rm -rf init
   } &> /dev/null
