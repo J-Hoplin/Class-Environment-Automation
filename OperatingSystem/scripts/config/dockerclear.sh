@@ -12,6 +12,11 @@ unset -v containerName
 source ./print.sh
 source ./exceptions.sh
 
+# Script Document
+scriptDoc="
+  -n | string:lowercase | container base name
+"
+
 # Parsing arguments, 
 unset -v returnState
 typeChecker(){
@@ -38,12 +43,12 @@ typeChecker(){
 checkRequiredArguments(){
   if [[ -z "${containerName}" ]]
   then
-    argumentException "Some arguments not entered"
+    argumentException "Some arguments not entered" "${scriptDoc}"
   else
     typeChecker $containerName lowerstring
     if [[ $returnState == 1 ]]
     then
-      argumentException "option -n must be type 'lowercase string'"
+      argumentException "option -n must be type 'lowercase string'" "${scriptDoc}"
     fi
   fi
 }
@@ -63,10 +68,14 @@ do
       containerName=${OPTARG}
       ;;
     *)
-      argumentException "Not supported type of argument"
+      argumentException "Not supported type of argument" "${scriptDoc}"
       ;;
   esac
 done
+
+# Check required Arguments including lowercase, typechecking
+stepPrint "Checking arguments conditions(type, constraints)"
+checkRequiredArguments
 
 stepPrint "Searching matched containers, stop, remove"
 for i in $(docker ps --filter="name=class502" -q)

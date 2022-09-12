@@ -17,6 +17,13 @@ unset -v imageName
 unset -v containerName
 unset -v containerCount
 
+# Script Document
+scriptDoc="
+  -i | string:lowercase | image name
+  -n | string:lowercase | container base name
+  -c | int | container container count
+"
+
 # Step printer
 step=1
 stepPrint(){
@@ -74,27 +81,27 @@ typeChecker(){
 checkRequiredArguments(){
   if [[ -z "${imageName}" || -z "${containerName}" || -z "${containerCount}" ]]
   then
-    argumentException "Some arguments not entered"
+    argumentException "Some arguments not entered" "${scriptDoc}"
   else
     # Check containerCount variable type as int
     typeChecker $containerCount int
     if [[ $returnState == 1 ]]
     then
-      argumentException "option -c must be type 'int'"
+      argumentException "option -c must be type 'int'" "${scriptDoc}"
     fi
 
     # Check imageName type as string:lowercase
     typeChecker $containerName lowerstring
     if [[ $returnState == 1 ]]
     then
-      argumentException "option -n must be type 'lowercase string'"
+      argumentException "option -n must be type 'lowercase string'" "${scriptDoc}"
     fi
 
     # Check containerName type as string:lowercase
     typeChecker $imageName lowerstring
     if [[ $returnState == 1 ]]
     then
-      argumentException "option -i must be type 'lowercase string'"
+      argumentException "option -i must be type 'lowercase string'" "${scriptDoc}"
     fi
   fi
 }
@@ -115,7 +122,7 @@ do
       containerCount=${OPTARG}
       ;;
     *)
-      argumentException "Not supported type of argument"
+      argumentException "Not supported type of argument" "${scriptDoc}"
       ;;
   esac
 done

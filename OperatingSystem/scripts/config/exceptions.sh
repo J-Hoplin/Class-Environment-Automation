@@ -3,21 +3,21 @@
 # Argument help command
 helpCommand(){
   printConsole "Required options for dockerinit.sh"
-  echo "-i | string:lowercase | image name"
-  echo "-n | string:lowercase | container base name"
-  echo "-c | int | container container count"
+  echo "${1}"
 }
 
 # Type Exception
 typeException() {
-    helpCommand
+    clear
+    helpCommand "${2}"
     echo "Type Exception : $1"
     exit 1
 }
 
 # Argument Exception
 argumentException() {
-    helpCommand
+    clear
+    helpCommand "${2}"
     echo "Arguments Exception : $1"
     exit 1
 }

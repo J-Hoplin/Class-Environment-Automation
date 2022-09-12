@@ -1,5 +1,6 @@
 {
-    "img" : "hongikos",
+    "img" : "hongikosclass",
+    "mem" : "300m",
     "env" : {
         "osclass501" : {
             "attendee" : 5
