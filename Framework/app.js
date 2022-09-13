@@ -14,17 +14,21 @@ const command = async () => {
         env
     } = config
     switch(option){
-        case 'build':
+        case 'buildenv':
             Object.entries(env).map(async([containerName,{ attendee }]) => {
                 const { stdout,stderr } = await exec(`cd project/script && bash envinit.sh -i ${imageName} -n ${containerName} -c ${ attendee } -m ${ memoryLimit }`)
                 stderr?console.error(stderr):console.log(stdout)
             })
             break
-        case 'clear':
+        case 'clearenv':
             Object.entries(env).map(async([containerName,_]) => {
-                const { stdout,stderr} = await exec(`cd project/script && bash envclear.sh -n ${containerName}`)
+                const { stdout,stderr } = await exec(`cd project/script && bash envclear.sh -n ${containerName}`)
                 stderr?console.error(stderr):console.log(stdout)
             })
+            break
+        case 'clearimg':
+            const { stdout,stderr } = await exec(`docker rmi ${imageName}`)
+            stderr?console.error(stderr):console.log(stdout)
             break
         default:
             console.log("Not supported type of command")
