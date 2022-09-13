@@ -1,0 +1,20 @@
+{
+    "img": "hongikosclass",
+    "mem": "300",
+    "env": {
+        "osclass501": {
+            "attendee": 2,
+            "ports": [
+                "55046",
+                "55048"
+            ]
+        },
+        "osclass502": {
+            "attendee": 2,
+            "ports": [
+                "55045",
+                "55047"
+            ]
+        }
+    }
+}

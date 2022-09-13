@@ -27,7 +27,7 @@ scriptDoc="
   -i | string:lowercase | image name
   -n | string:lowercase | container base name
   -c | int | container container count
-  -m | string | Memory limit, default : 500mb
+  -m | int | Memory limit, Unit : mb | default : 500
 "
 
 # Step printer
@@ -50,8 +50,6 @@ envParser(){
         eval "${line}"
     fi
   done < ${varLocation}
-
-  echo $BASIC_MEMORY
 }
 
 # Check required arguments entered
@@ -62,6 +60,10 @@ checkRequiredArguments(){
   else
     # Check containerCount variable type as int
     typeChecker $containerCount int "c"
+    if [[ $containerCount -lt $LEAST_COUNT ]];
+    then
+      argumentException "Container count must be create more than ${LEAST_COUNT}" "${scriptDoc}"
+    fi
 
     # Check imageName type as string:lowercase
     typeChecker $containerName lowerstring "n"
@@ -70,7 +72,12 @@ checkRequiredArguments(){
     typeChecker $imageName lowerstring "i"
 
     # Check memoryLimit type as string
-    typeChecker $memoryLimit string "m"
+    # Upper than 10
+    typeChecker $memoryLimit int "m"
+    if [[ $memoryLimit -lt $LEAST_MEMORY ]];
+    then
+      argumentException "Memory should be at least ${LEAST_MEMORY}mb" "${scriptDoc}"
+    fi
   fi
 }
 
@@ -79,7 +86,7 @@ checkRequiredArguments(){
 #################
 
 # Get env variables
-envParser "$(pwd)/.env"
+envParser "$(dirname $(pwd))/config/.env"
 
 stepPrint "Parsing Arguments"
 # Parsing arguments, required in order(POSIX method)
@@ -146,14 +153,13 @@ do
   loopName="${containerName}_${i}"
   { 
     # Dynamic port allocate
-    docker run -it -d -m ${memoryLimit} -p 0:22 --privileged --name ${loopName} ${imageName} /sbin/init
+    docker run -it -d -m ${memoryLimit}m -p 0:22 --privileged --name ${loopName} ${imageName} /sbin/init
     docker exec ${loopName} bash init/init.sh
     docker exec ${loopName} rm -rf init
     dynamicPortsInfo+="$(docker port ${loopName})"
   } &> /dev/null
 done
 
-echo "${dynamicPortsInfo[@]}"
+node $(dirname $(pwd))/utils port "${containerName}" "${dynamicPortsInfo[@]}"
 
 stepPrint "Script End"
-

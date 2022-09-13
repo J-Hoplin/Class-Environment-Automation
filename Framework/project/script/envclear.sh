@@ -32,7 +32,9 @@ stepPrint(){
   printStep $step "$1"
   step=$(expr $step + 1)
 }
-
+#################
+#Execution Point#
+#################
 stepPrint "Parsing arguments"
 while getopts "n:" opt;
 do
@@ -51,13 +53,13 @@ stepPrint "Checking arguments conditions(type, constraints)"
 checkRequiredArguments
 
 stepPrint "Searching matched containers, stop, remove"
-for i in $(docker ps --filter="name=${containerName}" -q)
+for i in $(docker ps -aq --filter="name=${containerName}")
 do
   ctName=$i
   echo "Removing container id : ${ctName}"
   {
-    docker stop $(docker ps -aq --filter="name=${containerName}")
-    docker rm $(docker ps -aq --filter="name=${containerName}")
+    docker stop "${ctName}"
+    docker rm "${ctName}"
   } &> /dev/null
 done
 

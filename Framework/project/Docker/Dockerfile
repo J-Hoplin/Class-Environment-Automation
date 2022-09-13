@@ -2,7 +2,7 @@ FROM centos
 
 LABEL maintainer="hoplin"
 LABEL email="jhoplin7259@gmail.com"
-LABEL organization="Hongik University Software and Communication"
+LABEL organization="Hongik University Software and Communication - Hoplin Lab"
 
 # Warning : With running this resource you need to run container with privileged option
 
