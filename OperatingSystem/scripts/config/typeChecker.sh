@@ -33,7 +33,7 @@ typeChecker(){
       ;;
     string)
       # String type doesn't support unicode emoji or text
-      if [[ $1 =~ ^([A-Za-z])+([0-9_-])*$ ]];
+      if [[ $1 =~ ^([A-Za-z0-9_-])+$ ]];
       then
         returnState=0
       else

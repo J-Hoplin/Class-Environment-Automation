@@ -3,7 +3,6 @@
 clear
 
 # R&D : xargs
-set -e
 
 unset -v containerName
 
@@ -52,13 +51,13 @@ stepPrint "Checking arguments conditions(type, constraints)"
 checkRequiredArguments
 
 stepPrint "Searching matched containers, stop, remove"
-for i in $(docker ps --filter="name=class502" -q)
+for i in $(docker ps --filter="name=${containerName}" -q)
 do
   ctName=$i
   echo "Removing container id : ${ctName}"
   {
-    docker stop $i
-    docker rm $i
+    docker stop $(docker ps -aq --filter="name=${containerName}")
+    docker rm $(docker ps -aq --filter="name=${containerName}")
   } &> /dev/null
 done
 

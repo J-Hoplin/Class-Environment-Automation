@@ -3,5 +3,5 @@ printConsole() {
 }
 
 printStep(){
-    echo "Step $1 : $2"
+    echo "Processing...(step $1) : $2"
 }

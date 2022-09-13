@@ -1,6 +1,6 @@
 {
     "img" : "hongikosclass",
-    "port" : "",
+    "port" : 7005,
     "mem" : "300m",
     "env" : {
         "osclass501" : {

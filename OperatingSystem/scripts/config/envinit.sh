@@ -17,6 +17,7 @@ source ./typeChecker.sh
 unset -v imageName
 unset -v containerName
 unset -v containerCount
+unset -v memoryLimit 
 
 # Parameter type array after parsing
 unset -v ports
@@ -26,6 +27,7 @@ scriptDoc="
   -i | string:lowercase | image name
   -n | string:lowercase | container base name
   -c | int | container container count
+  -m | string | Memory limit, default : 500mb
 "
 
 # Step printer
@@ -35,9 +37,26 @@ stepPrint(){
   step=$(expr $step + 1)
 }
 
+# Parse .ENV
+envParser(){
+  local varLocation=$1
+
+  # Shell can't read last line of file
+  # To read last line of file need to 
+
+  while read line; 
+  do
+    if [[ -z $(echo ${line} | grep "#" ) ]]; then
+        eval "${line}"
+    fi
+  done < ${varLocation}
+
+  echo $BASIC_MEMORY
+}
+
 # Check required arguments entered
 checkRequiredArguments(){
-  if [[ -z "${imageName}" || -z "${containerName}" || -z "${containerCount}" ]]
+  if [[ -z "${imageName}" || -z "${containerName}" || -z "${containerCount}" || -z "${memoryLimit}" ]];
   then
     argumentException "Some arguments not entered" "${scriptDoc}"
   else
@@ -50,35 +69,43 @@ checkRequiredArguments(){
     # Check containerName type as string:lowercase
     typeChecker $imageName lowerstring "i"
 
-    # Check port type as int
-    for i in  "${ports[@]}"
-    do
-      typeChecker $i int "p"
-    done
+    # Check memoryLimit type as string
+    typeChecker $memoryLimit string "m"
   fi
 }
 
+#################
+#Execution Point#
+#################
+
+# Get env variables
+envParser "$(pwd)/.env"
 
 stepPrint "Parsing Arguments"
 # Parsing arguments, required in order(POSIX method)
-while getopts "i:n:c:p:" opt;
+while getopts "i:n:c:p:m:" opt;
 do
   case $opt in
+    #Image name
     i)
       imageName=${OPTARG}
       ;;
+    #Container name
     n) 
       containerName=${OPTARG}
       ;;
+    #Container env count
     c) 
       containerCount=${OPTARG}
       ;;
-    p)
-      ports=()
-      for i in "${OPTARG}"
-      do
-        ports+=($i)
-      done
+    #Memory Limitation
+    m)
+      if [[ -z ${OPTARG} ]];
+      then  
+        memoryLimit="${BASIC_MEMORY}"
+      else
+        memoryLimit=${OPTARG}
+      fi
       ;;
     *)
       argumentException "Not supported type of argument" "${scriptDoc}"
@@ -90,7 +117,7 @@ done
 stepPrint "Checking arguments conditions(type, constraints)"
 checkRequiredArguments
 
-stepPrint "Build Container"
+stepPrint "Build container image"
 
 # Check if image with same name exist
 imageExist=0
@@ -112,15 +139,21 @@ fi
 
 stepPrint "Initiate containers : Total $containerCount need to be initiate"
 
+dynamicPortsInfo=()
 for i in $(seq $containerCount)
 do
+  echo "Progressing...(${i}/${containerCount})"
   loopName="${containerName}_${i}"
   { 
-    docker run -it -d --privileged -p ${ports[$i - 1]}:22 --name ${loopName} ${imageName} /sbin/init
+    # Dynamic port allocate
+    docker run -it -d -m ${memoryLimit} -p 0:22 --privileged --name ${loopName} ${imageName} /sbin/init
     docker exec ${loopName} bash init/init.sh
     docker exec ${loopName} rm -rf init
+    dynamicPortsInfo+="$(docker port ${loopName})"
   } &> /dev/null
-  echo "Progressing...(${i}/${containerCount})"
 done
 
+echo "${dynamicPortsInfo[@]}"
+
 stepPrint "Script End"
+
