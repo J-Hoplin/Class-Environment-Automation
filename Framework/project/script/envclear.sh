@@ -6,6 +6,10 @@ clear
 
 unset -v containerName
 
+# Framework Base Directory
+frameworkDirectory="$(cd "$(dirname "$(cd "$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)")" &> /dev/null && pwd)")" &> /dev/null && pwd)"
+# Container volume mount Directory
+volumeBaseDirectory="$(cd "$(dirname "${frameworkDirectory}")" &> /dev/null && pwd)"
 
 # Get exceptions and console printConvention
 source ./console.sh
@@ -62,5 +66,8 @@ do
     docker rm "${ctName}"
   } &> /dev/null
 done
+
+cd ${volumeBaseDirectory}
+rm -rf $(ls | grep "${containerName}")
 
 stepPrint "Script End"

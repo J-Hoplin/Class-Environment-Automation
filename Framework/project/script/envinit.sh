@@ -22,6 +22,11 @@ unset -v memoryLimit
 # Parameter type array after parsing
 unset -v ports
 
+# Framework Base Directory
+frameworkDirectory="$(cd "$(dirname "$(cd "$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)")" &> /dev/null && pwd)")" &> /dev/null && pwd)"
+# Container volume mount Directory
+volumeBaseDirectory="$(cd "$(dirname "${frameworkDirectory}")" &> /dev/null && pwd)"
+
 # Script Document
 scriptDoc="
   -i | string:lowercase | image name
@@ -151,9 +156,11 @@ for i in $(seq $containerCount)
 do
   echo "Progressing...(${i}/${containerCount})"
   loopName="${containerName}_${i}"
+  volumeName="${volumeBaseDirectory}/${loopName}"
+  mkdir "${volumeName}"
   { 
     # Dynamic port allocate
-    docker run -it -d -m ${memoryLimit}m -p 0:22 --privileged --name ${loopName} ${imageName} /sbin/init
+    docker run -it -d -m ${memoryLimit}m -p 0:22 -v ${volumeName}:/home/works --privileged --name ${loopName} ${imageName} /sbin/init
     docker exec ${loopName} bash init/init.sh
     docker exec ${loopName} rm -rf init
     dynamicPortsInfo+="$(docker port ${loopName})"
