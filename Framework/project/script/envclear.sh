@@ -33,7 +33,7 @@ checkRequiredArguments(){
 # Step printer
 step=1
 stepPrint(){
-  printStep $step "$1"
+  printStep $step "$1" "$(basename $0)"
   step=$(expr $step + 1)
 }
 #################

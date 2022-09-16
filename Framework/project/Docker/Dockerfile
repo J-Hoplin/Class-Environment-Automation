@@ -34,6 +34,7 @@ RUN echo "alias initenv=\"bash init/init.sh\"" >> $HOME/.bashrc
 RUN source $HOME/.bashrc
 
 RUN mkdir /home/works
-VOLUME [ "/home/works" ]
+RUN mkdir /home/works/share
+VOLUME [ "/home/works", "/home/works/share" ]
 # Expose ssh
 EXPOSE 22

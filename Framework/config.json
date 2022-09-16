@@ -1,21 +1,17 @@
 {
-    "img": "hongikosclass",
-    "mem": "300",
+    "img": "osclass",
+    "mem": "500",
+    "owner": {
+        "ports": []
+    },
     "env": {
-        "osclass501": {
-            "attendee": 2,
-            "ports": [
-                "55050",
-                "55051"
-            ]
+        "osclass_501": {
+            "attendee": 5,
+            "ports": []
         },
-        "osclass502": {
-            "attendee": 3,
-            "ports": [
-                "55049",
-                "55052",
-                "55053"
-            ]
+        "osclass_502": {
+            "attendee": 2,
+            "ports": []
         }
     }
 }

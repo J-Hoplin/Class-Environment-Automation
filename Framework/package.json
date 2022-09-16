@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build" : "node app.js buildenv",
-    "clear" : "node app.js clearenv && node app.js clearimg"
+    "build" : "node app.js buildowner && node app.js buildenv",
+    "clear" : "node app.js clearowner && node app.js clearenv && node app.js clearimg"
   },
   "keywords": [],
   "author": "",

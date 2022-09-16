@@ -16,7 +16,6 @@ source ./typeChecker.sh
 
 unset -v imageName
 unset -v containerName
-unset -v containerCount
 unset -v memoryLimit 
 
 # Parameter type array after parsing
@@ -27,18 +26,10 @@ frameworkDirectory="$(cd "$(dirname "$(cd "$(dirname "$(cd "$(dirname "${BASH_SO
 # Container volume mount Directory
 volumeBaseDirectory="$(cd "$(dirname "${frameworkDirectory}")" &> /dev/null && pwd)"
 
-# Script Document
-scriptDoc="
-  -i | string:lowercase | image name
-  -n | string:lowercase | container base name
-  -c | int | container container count
-  -m | int | Memory limit, Unit : mb | default : 500
-"
-
 # Step printer
 step=1
 stepPrint(){
-  printStep $step "$1"
+  printStep $step "$1" "$(basename $0)"
   step=$(expr $step + 1)
 }
 
@@ -59,16 +50,10 @@ envParser(){
 
 # Check required arguments entered
 checkRequiredArguments(){
-  if [[ -z "${imageName}" || -z "${containerName}" || -z "${containerCount}" || -z "${memoryLimit}" ]];
+  if [[ -z "${imageName}" || -z "${containerName}" || -z "${memoryLimit}" ]];
   then
     argumentException "Some arguments not entered" "${scriptDoc}"
   else
-    # Check containerCount variable type as int
-    typeChecker $containerCount int "c"
-    if [[ $containerCount -lt $LEAST_COUNT ]];
-    then
-      argumentException "Container count must be create more than ${LEAST_COUNT}" "${scriptDoc}"
-    fi
 
     # Check imageName type as string:lowercase
     typeChecker $containerName lowerstring "n"
@@ -86,6 +71,8 @@ checkRequiredArguments(){
   fi
 }
 
+
+
 #################
 #Execution Point#
 #################
@@ -93,9 +80,16 @@ checkRequiredArguments(){
 # Get env variables
 envParser "$(dirname $(pwd))/config/.env"
 
+# Script Document
+scriptDoc="
+  -i | string:lowercase | image name
+  -n | string:lowercase | container base name
+  -m | int | Memory limit, Unit : mb | default : $BASIC_MEMORY
+"
+
 stepPrint "Parsing Arguments"
 # Parsing arguments, required in order(POSIX method)
-while getopts "i:n:c:p:m:" opt;
+while getopts "i:n:m:" opt;
 do
   case $opt in
     #Image name
@@ -105,10 +99,6 @@ do
     #Container name
     n) 
       containerName=${OPTARG}
-      ;;
-    #Container env count
-    c) 
-      containerCount=${OPTARG}
       ;;
     #Memory Limitation
     m)
@@ -129,44 +119,17 @@ done
 stepPrint "Checking arguments conditions(type, constraints)"
 checkRequiredArguments
 
-stepPrint "Build container image"
-
-# Check if image with same name exist
-imageExist=0
-for i in $(docker images | grep os | awk '{print $1}')
-do
-  if [[ "${i}" == "${imageName}" ]];
-  then
-    imageExist=1
-    break
-  fi
-done
-
-# Build Image if not exist
-if [[ ${imageExist} -eq 0 ]]
-then
-  stepPrint "Image not detected. Build Image"
-  docker build -t ${imageName} $(dirname $(pwd))/Docker
-fi
-
-stepPrint "Initiate containers : Total $containerCount need to be initiate"
-
 dynamicPortsInfo=()
-for i in $(seq $containerCount)
-do
-  echo "Progressing...(${i}/${containerCount})"
-  loopName="${containerName}_${i}"
-  volumeName="${volumeBaseDirectory}/${loopName}"
-  mkdir "${volumeName}"
-  { 
-    # Dynamic port allocate
-    docker run -it -d -m ${memoryLimit}m -p 0:22 -v ${volumeName}:/home/works --privileged --name ${loopName} ${imageName} /sbin/init
-    docker exec ${loopName} bash init/init.sh
-    docker exec ${loopName} rm -rf init
-    dynamicPortsInfo+="$(docker port ${loopName})"
-  } &> /dev/null
-done
+stepPrint "Initiate containers : Owner container"
+volumeName="${volumeBaseDirectory}/${containerName}"
+mkdir "${volumeName}"
+{
+    docker run -it -d -m ${memoryLimit}m -p 0:22 -v ${volumeName}:/home/works --privileged --name ${containerName} ${imageName} /sbin/init
+    docker exec ${containerName} bash init/init.sh
+    docker exec ${containerName} rm -rf init
+    dynamicPortsInfo+="$(docker port ${containerName})"
+} &> /dev/null
 
-node $(dirname $(pwd))/utils port "${containerName}" "${dynamicPortsInfo[@]}"
+node $(dirname $(pwd))/utils port-owner "${dynamicPortsInfo[@]}"
 
-stepPrint "Script End"
+exit 0
