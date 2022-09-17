@@ -22,7 +22,6 @@ RUN echo 'root:centos123' | chpasswd
 
 # Set default working directory to "/home"
 WORKDIR /home
-
 RUN mkdir /home/init
 
 # Copy init.sh : hidden file
@@ -34,5 +33,8 @@ RUN chmod +x /home/init/init.sh
 RUN echo "alias initenv=\"bash init/init.sh\"" >> $HOME/.bashrc
 RUN source $HOME/.bashrc
 
+RUN mkdir /home/works
+RUN mkdir /home/works/share
+VOLUME [ "/home/works", "/home/works/share" ]
 # Expose ssh
 EXPOSE 22

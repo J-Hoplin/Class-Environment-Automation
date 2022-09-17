@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build" : "node app.js buildowner && node app.js buildenv",
+    "clear" : "node app.js clearowner && node app.js clearenv && node app.js clearimg"
   },
   "keywords": [],
   "author": "",
